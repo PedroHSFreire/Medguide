@@ -7,7 +7,7 @@ export const db: Connection = mysql.createConnection({
   host: process.env.BD_HOST || "localhost",
   user: process.env.BD_USER || "root",
   password: process.env.BD_PASSWORD || "",
-  database: process.env.BD_NAME || "nome_do_banco",
+  database: process.env.BD_NAME || "medguide",
 });
 
 db.connect((err) => {
