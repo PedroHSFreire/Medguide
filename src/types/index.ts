@@ -2,8 +2,9 @@ export interface Doctor {
   id?: string;
   name: string;
   email: string;
-  created?: string;
   CRM: number;
+  spacialty: string;
+  created?: string;
 }
 export interface Pacient {
   id?: string;
