@@ -11,7 +11,7 @@ const createTable = async (): Promise<void> => {
     )
     `;
   const CreatePacientTable = `
-    CREATE TABLE IF NOT EXISTS Doctor (
+    CREATE TABLE IF NOT EXISTS Pacient (
     id TEXT PRIMARY KEY,
     nome TEXT NOT NULL
     email TEXT NOT NULL UNIQUE
