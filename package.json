@@ -7,7 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --watch src --ext ts --exec \"tsx src/server.ts\"",
     "compile": "npx tsc",
-    "start": "node ./dist/server.js"
+    "start": "node ./dist/server.js",
+    "init-db": "node --loader ts-node/esm src/database/init.ts",
+    "reset-db": "node --loader ts-node/esm src/database/reset.ts",
+    "check-db": "node --loader ts-node/esm src/database/check-tables.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,8 +24,8 @@
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
-    "mysql": "^2.18.1",
-    "mysql2": "^3.15.2",
+    "routers": "^0.1.4",
+    "sqlite3": "^5.1.7",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

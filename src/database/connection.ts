@@ -1,29 +1,37 @@
-import mysql from "mysql2";
-import type { Connection } from "mysql2";
-import dotenv from "dotenv";
-dotenv.config();
+import sqlite3 from "sqlite3";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
-export const db: Connection = mysql.createConnection({
-  host: process.env.BD_HOST || "localhost",
-  user: process.env.BD_USER || "root",
-  password: process.env.BD_PASSWORD || "",
-  database: process.env.BD_NAME || "medguide",
-});
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const dbPath =
+  process.env.DATABASE_PATH || path.join(__dirname, "../../database.sqlite");
 
-db.connect((err) => {
+export const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
-    console.log("Erro ao conectar ao banco de dados: ", err.message);
-  } else {
-    console.log("Conexão com MySQL estabelecida!");
+    console.log("Erro ao conectar com o banco de dados", err.message);
   }
 });
+
+export const closeDatabase = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    db.close((err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+};
 
 export const runQuery = (
   sql: string,
   params: unknown[] = []
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
-    db.query(sql, params, function (err) {
+    db.run(sql, params, function (err) {
       if (err) {
         reject(err);
       } else {
@@ -38,11 +46,11 @@ export const getQuery = <T>(
   params: unknown[] = []
 ): Promise<T | undefined> => {
   return new Promise((resolve, reject) => {
-    db.query(sql, params, (err, results) => {
+    db.get(sql, params, (err, row) => {
       if (err) {
         reject(err);
       } else {
-        resolve((results as T[])[0]);
+        resolve(row as T);
       }
     });
   });
@@ -53,11 +61,11 @@ export const allQuery = <T>(
   params: unknown[] = []
 ): Promise<T[]> => {
   return new Promise((resolve, reject) => {
-    db.query(sql, params, (err, results) => {
+    db.all(sql, params, (err, rows) => {
       if (err) {
         reject(err);
       } else {
-        resolve(results as T[]);
+        resolve(rows as T[]);
       }
     });
   });

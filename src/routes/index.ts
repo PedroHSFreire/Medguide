@@ -1,0 +1,18 @@
+import { Router } from "express";
+import PacientRoutes from "./PacientRoutes.js";
+import DoctorRoutes from "./DoctorRoutes.js";
+import { Response, Request } from "express";
+
+const router = Router();
+
+router.use("/doctor", DoctorRoutes);
+router.use("/pacient", PacientRoutes);
+
+router.get("/health", (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: "Api funciando corretamente",
+    timestamp: new Date().toISOString(),
+  });
+});
+export default router;

@@ -3,7 +3,7 @@ export interface Doctor {
   name: string;
   email: string;
   CRM: number;
-  spacialty: string;
+  specialty: string;
   created?: string;
 }
 export interface Pacient {

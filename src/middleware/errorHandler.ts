@@ -1,12 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 
-export const errorHendler = (
+export const errorHandler = (
   error: Error,
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  console.log("Error", error);
+  console.log("Error: ", error);
+
   if (error.message.includes("UNIQUE constraint failed")) {
     res.status(409).json({
       success: false,
@@ -28,6 +29,7 @@ export const errorHendler = (
     error: "Erro interno do servidor",
   });
 };
+
 export const notFoundHandler = (req: Request, res: Response): void => {
   res.status(404).json({
     success: false,
