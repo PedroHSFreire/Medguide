@@ -5,9 +5,6 @@ import { Response, Request } from "express";
 
 const router = Router();
 
-router.use("/doctor", DoctorRoutes);
-router.use("/pacient", PacientRoutes);
-
 router.get("/health", (req: Request, res: Response) => {
   res.json({
     success: true,
@@ -15,4 +12,7 @@ router.get("/health", (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+router.use("/doctor", DoctorRoutes);
+router.use("/pacient", PacientRoutes);
 export default router;
