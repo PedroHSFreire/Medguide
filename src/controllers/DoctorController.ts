@@ -15,6 +15,15 @@ export class DoctorController {
         });
         return;
       }
+
+      const existingDoctorByCPF = await DoctorModel.findByCPF(DoctorData.cpf);
+      if (existingDoctorByCPF) {
+        res.status(409).json({
+          success: false,
+          error: "CPF já está em uso",
+        });
+        return;
+      }
       const id = await DoctorModel.create(DoctorData);
       const Doctor = await DoctorModel.findById(id);
 
@@ -31,7 +40,7 @@ export class DoctorController {
         data: Doctor,
         message: "Doutor cirado com sucesso",
       };
-      res.status(101).json(response);
+      res.status(201).json(response);
     } catch (error) {
       next(error);
     }
@@ -138,6 +147,17 @@ export class DoctorController {
           res.status(409).json({
             success: false,
             error: "Email já está em uso",
+          });
+          return;
+        }
+      }
+
+      if (DoctorData.cpf && DoctorData.cpf !== existingDoctor.cpf) {
+        const cpfExists = await DoctorModel.findByCPF(DoctorData.cpf);
+        if (cpfExists) {
+          res.status(409).json({
+            success: false,
+            error: "CPF já está em uso",
           });
           return;
         }
