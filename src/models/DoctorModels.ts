@@ -7,8 +7,7 @@ export class DoctorModel {
     try {
       const id = uuidv4();
       const sql =
-        "INSERT INTO Doctor (id, name, email, CRM, specialty) VALUES (?, ?, ?, ?, ?)"; // Corrigido: specialty
-
+        "INSERT INTO Doctor (id, name, email, CRM, specialty, password, cpf) VALUES (?, ?, ?, ?, ?, ?, ?)";
       await runQuery(sql, [
         id,
         doctor.name,
@@ -40,7 +39,6 @@ export class DoctorModel {
   }
 
   static async findByName(name: string): Promise<Doctor | undefined> {
-    // Corrigido: findByName
     try {
       const sql = "SELECT * FROM Doctor WHERE name = ?";
       return await getQuery<Doctor>(sql, [name]);
@@ -67,7 +65,6 @@ export class DoctorModel {
   }
 
   static async findByCRM(CRM: number): Promise<Doctor | undefined> {
-    // Alterado para number
     try {
       const sql = "SELECT * FROM Doctor WHERE CRM = ?";
       return await getQuery<Doctor>(sql, [CRM]);
@@ -81,13 +78,24 @@ export class DoctorModel {
   }
 
   static async findBySpecialty(specialty: string): Promise<Doctor[]> {
-    // Corrigido: specialty e retorna array
     try {
       const sql = "SELECT * FROM Doctor WHERE specialty = ?";
       return await allQuery<Doctor>(sql, [specialty]);
     } catch (error) {
       throw new Error(
         `Erro ao buscar médico por especialidade: ${
+          error instanceof Error ? error.message : "Erro desconhecido"
+        }`
+      );
+    }
+  }
+  static async findByCPF(cpf: string): Promise<Doctor | undefined> {
+    try {
+      const sql = `SELECT * FROM Doctor WHERE cpf = ?`;
+      return await getQuery<Doctor>(sql, [cpf]);
+    } catch (error) {
+      throw new Error(
+        `Não foi possível achar o cpf: ${
           error instanceof Error ? error.message : "Erro desconhecido"
         }`
       );
@@ -142,7 +150,6 @@ export class DoctorModel {
       );
     }
   }
-
   static async update(
     id: string,
     doctor: Partial<Omit<Doctor, "id" | "created">>

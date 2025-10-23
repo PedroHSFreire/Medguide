@@ -28,6 +28,8 @@ async function createTables(): Promise<void> {
       email TEXT NOT NULL UNIQUE,
       CRM INTEGER NOT NULL UNIQUE,
       specialty TEXT NOT NULL,
+      password TEXT,  
+      cpf TEXT, 
       created DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `;
@@ -37,6 +39,8 @@ async function createTables(): Promise<void> {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
+      password TEXT,
+      cpf TEXT
       created DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `;
@@ -47,9 +51,32 @@ async function createTables(): Promise<void> {
 
     await runQuery(createPacientTable);
     console.log("Tabela Pacient criada/verificada");
+
+    await addColumn("Doctor", "password", "TEXT");
+    await addColumn("Doctor", "cpf", "TEXT");
+
+    await addColumn("Pacient", "password", "TEXT");
+    await addColumn("Pacient", "cpf", "TEXT");
   } catch (error) {
     console.error("Erro ao criar tabelas:", error);
     throw error;
+  }
+}
+async function addColumn(
+  table: string,
+  column: string,
+  type: string
+): Promise<void> {
+  const sql = `ALTER TABLE ${table} ADD COLUMN ${column} ${type}`;
+  try {
+    await runQuery(sql);
+    console.log(`Coluna ${column} adicionada na tabela ${table}`);
+  } catch (error: any) {
+    if (error.message.includes("duplicate column name")) {
+      console.log(`Coluna ${column} já existe na tabela ${table}`);
+    } else {
+      throw error;
+    }
   }
 }
 

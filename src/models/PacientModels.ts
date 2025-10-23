@@ -8,7 +8,8 @@ export class PacientModel {
   ): Promise<string> {
     try {
       const id = uuidv4();
-      const sql = "INSERT INTO Pacient (id, name, email) VALUES (?, ?, ?)";
+      const sql =
+        "INSERT INTO Pacient (id, name, email, passowrd, cpf) VALUES (?, ?, ?,?,?)";
       await runQuery(sql, [id, pacient.name, pacient.email]);
       return id;
     } catch (error) {
@@ -41,6 +42,18 @@ export class PacientModel {
     } catch (error) {
       throw new Error(
         `Erro ao buscar paciente por email: ${
+          error instanceof Error ? error.message : "Erro desconhecido"
+        }`
+      );
+    }
+  }
+  static async findByCPF(cpf: string): Promise<Pacient | undefined> {
+    try {
+      const sql = "SELECT * FROM Pcient WHERE cpf = ?";
+      return await getQuery<Pacient>(sql, [cpf]);
+    } catch (error) {
+      throw new Error(
+        `Erro ao buscar paciente pelo cpf: ${
           error instanceof Error ? error.message : "Erro desconhecido"
         }`
       );
