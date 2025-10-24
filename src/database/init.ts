@@ -51,12 +51,6 @@ async function createTables(): Promise<void> {
 
     await runQuery(createPacientTable);
     console.log("Tabela Pacient criada/verificada");
-
-    await addColumn("Doctor", "password", "TEXT");
-    await addColumn("Doctor", "cpf", "TEXT");
-
-    await addColumn("Pacient", "password", "TEXT");
-    await addColumn("Pacient", "cpf", "TEXT");
   } catch (error) {
     console.error("Erro ao criar tabelas:", error);
     throw error;
