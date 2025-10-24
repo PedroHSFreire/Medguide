@@ -14,6 +14,8 @@ export class DoctorModel {
         doctor.email,
         doctor.CRM,
         doctor.specialty,
+        doctor.password,
+        doctor.cpf,
       ]);
       return id;
     } catch (error) {

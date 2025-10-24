@@ -40,7 +40,7 @@ export class DoctorController {
         data: Doctor,
         message: "Doutor cirado com sucesso",
       };
-      res.status(101).json(response);
+      res.status(201).json(response);
     } catch (error) {
       next(error);
     }

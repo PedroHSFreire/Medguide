@@ -40,7 +40,7 @@ async function createTables(): Promise<void> {
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       password TEXT,
-      cpf TEXT
+      cpf TEXT,
       created DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `;

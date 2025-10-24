@@ -42,9 +42,9 @@ export class PacientController {
       const response: ApiResponse<Pacient> = {
         success: true,
         data: Pacient,
-        message: "Doutor criado com sucesso",
+        message: "Paciente criado com sucesso",
       };
-      res.status(101).json(response);
+      res.status(201).json(response);
     } catch (error) {
       next(error);
     }
@@ -131,15 +131,15 @@ export class PacientController {
       }
       const PacientData: Partial<Omit<Pacient, "id" | "created">> = req.body;
 
-      const exisitngPacient = await PacientModel.findById(id);
-      if (!exisitngPacient) {
+      const existngPacient = await PacientModel.findById(id);
+      if (!existngPacient) {
         res.status(404).json({
           success: false,
           message: "Pacient não encontrado",
         });
         return;
       }
-      if (PacientData.email && PacientData.email !== exisitngPacient.email) {
+      if (PacientData.email && PacientData.email !== existngPacient.email) {
         const emailExists = await PacientModel.findByEmail(PacientData.email);
         if (emailExists) {
           res.status(409).json({
@@ -149,7 +149,7 @@ export class PacientController {
           return;
         }
       }
-      if (PacientData.cpf && PacientData.cpf !== exisitngPacient.cpf) {
+      if (PacientData.cpf && PacientData.cpf !== existngPacient.cpf) {
         const cpfExists = await PacientModel.findByCPF(PacientData.cpf);
         if (cpfExists) {
           res.status(409).json({

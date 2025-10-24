@@ -9,8 +9,14 @@ export class PacientModel {
     try {
       const id = uuidv4();
       const sql =
-        "INSERT INTO Pacient (id, name, email, passowrd, cpf) VALUES (?, ?, ?,?,?)";
-      await runQuery(sql, [id, pacient.name, pacient.email]);
+        "INSERT INTO Pacient (id, name, email, password, cpf) VALUES (?, ?, ?,?,?)";
+      await runQuery(sql, [
+        id,
+        pacient.name,
+        pacient.email,
+        pacient.password,
+        pacient.cpf,
+      ]);
       return id;
     } catch (error) {
       throw new Error(
@@ -49,7 +55,7 @@ export class PacientModel {
   }
   static async findByCPF(cpf: string): Promise<Pacient | undefined> {
     try {
-      const sql = "SELECT * FROM Pcient WHERE cpf = ?";
+      const sql = "SELECT * FROM Pacient WHERE cpf = ?";
       return await getQuery<Pacient>(sql, [cpf]);
     } catch (error) {
       throw new Error(

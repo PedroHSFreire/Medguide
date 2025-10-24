@@ -1,4 +1,4 @@
-import { body, param, query, validationResult } from "Express-validator";
+import { body, param, validationResult } from "express-validator";
 import { Request, Response, NextFunction } from "express";
 
 export const handleValidationErrors = (
@@ -10,38 +10,51 @@ export const handleValidationErrors = (
   if (!errors.isEmpty()) {
     res.status(400).json({
       success: false,
-      error: "Dados invalidos",
-      detaisl: errors.array(),
+      error: "Dados inválidos",
+      details: errors.array(),
     });
     return;
   }
   next();
 };
-export const validateDoctor = [
-  body("name")
-    .notEmpty()
-    .withMessage("Nome é obrigatório")
-    .isLength({ min: 1, max: 255 })
-    .withMessage("Nome deve ter entre 1 e 255 caracteres"),
-  body("email")
-    .isEmail()
-    .withMessage("Nome deve ter entre 1 e 255 caracteres")
-    .normalizeEmail(),
+
+export const validatePacientUpdate = [
+  body("name").optional().isLength({ min: 1, max: 255 }),
+  body("email").optional().isEmail(),
+  body("password").optional(),
+  body("cpf").optional(),
   handleValidationErrors,
 ];
+
+export const validateDoctorUpdate = [
+  body("name").optional().isLength({ min: 1, max: 255 }),
+  body("email").optional().isEmail(),
+  body("CRM").optional().isInt(),
+  body("specialty").optional(),
+  body("password").optional(),
+  body("cpf").optional(),
+  handleValidationErrors,
+];
+
 export const validatePacient = [
-  body("name")
-    .notEmpty()
-    .withMessage("Nome é obrigatório")
-    .isLength({ min: 1, max: 255 })
-    .withMessage("Nome deve ter entre 1 e 255 caracteres"),
-  body("email")
-    .isEmail()
-    .withMessage("Nome deve ter entre 1 e 255 caracteres")
-    .normalizeEmail(),
+  body("name").notEmpty().isLength({ min: 1, max: 255 }),
+  body("email").isEmail(),
+  body("password").notEmpty(),
+  body("cpf").notEmpty(),
   handleValidationErrors,
 ];
+
+export const validateDoctor = [
+  body("name").notEmpty().isLength({ min: 1, max: 255 }),
+  body("email").isEmail(),
+  body("CRM").isInt(),
+  body("specialty").notEmpty(),
+  body("password").notEmpty(),
+  body("cpf").notEmpty(),
+  handleValidationErrors,
+];
+
 export const validateID = [
-  param("id").isUUID(4).withMessage("ID deve ser um UUID válido"),
+  param("id").isLength({ min: 36, max: 36 }),
   handleValidationErrors,
 ];
