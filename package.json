@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --watch src --ext ts --exec \"tsx src/server.ts\"",
     "compile": "npx tsc",
-    "start": "node dist/server.js",
+    "start": "npm run build && node dist/server.js",
     "init-db": "tsx src/database/init.ts",
     "reset-db": "tsx src/database/reset.ts",
     "check-db": "tsx src/database/check-tables.ts",
