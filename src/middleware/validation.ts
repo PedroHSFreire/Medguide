@@ -55,6 +55,8 @@ export const validateDoctor = [
 ];
 
 export const validateID = [
-  param("id").isLength({ min: 36, max: 36 }),
+  param("id")
+    .isLength({ min: 36, max: 36 })
+    .withMessage("ID deve ter 36 caracteres"),
   handleValidationErrors,
 ];
