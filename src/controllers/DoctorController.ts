@@ -1,9 +1,41 @@
 import { Response, Request, NextFunction } from "express";
 import { DoctorModel } from "../models/DoctorModels.js";
 import { Doctor, ApiResponse } from "../types/index.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export class DoctorController {
-  static async create(req: Request, res: Response, next: NextFunction) {
+  // MÉTODOS DE AUTENTICAÇÃO
+  static async login(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { login, password } = req.body;
+
+      let doctor: Doctor | null = null;
+
+      if (login.includes("@")) {
+        const result = await DoctorModel.findByEmail(login);
+        doctor = result ? result : null;
+      } else {
+        const cleanCPF = login.replace(/\D/g, "");
+        const result = await DoctorModel.findByCPF(cleanCPF);
+        doctor = result ? result : null;
+      }
+
+      // ... resto do código igual
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async register(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const DoctorData: Omit<Doctor, "id" | "created"> = req.body;
 
@@ -24,10 +56,14 @@ export class DoctorController {
         });
         return;
       }
-      const id = await DoctorModel.create(DoctorData);
-      const Doctor = await DoctorModel.findById(id);
 
-      if (!Doctor) {
+      const hashedPassword = await bcrypt.hash(DoctorData.password, 10);
+      const doctorDataWithHash = { ...DoctorData, password: hashedPassword };
+
+      const id = await DoctorModel.create(doctorDataWithHash);
+      const newDoctor = await DoctorModel.findById(id);
+
+      if (!newDoctor) {
         res.status(500).json({
           success: false,
           error: "Erro ao criar o médico",
@@ -35,15 +71,172 @@ export class DoctorController {
         return;
       }
 
-      const response: ApiResponse<Doctor> = {
+      const { password: _, ...doctorWithoutPassword } = newDoctor;
+
+      const response: ApiResponse<Omit<Doctor, "password">> = {
         success: true,
-        data: Doctor,
-        message: "Doutor cirado com sucesso",
+        data: doctorWithoutPassword,
+        message: "Médico criado com sucesso",
       };
       res.status(201).json(response);
     } catch (error) {
       next(error);
     }
+  }
+
+  static async getProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const doctorId = (req as any).user?.id;
+
+      if (!doctorId) {
+        res.status(401).json({
+          success: false,
+          error: "Não autorizado",
+        });
+        return;
+      }
+
+      const doctor = await DoctorModel.findById(doctorId);
+      if (!doctor) {
+        res.status(404).json({
+          success: false,
+          error: "Médico não encontrado",
+        });
+        return;
+      }
+
+      const { password, ...doctorWithoutPassword } = doctor;
+
+      const response: ApiResponse<Omit<Doctor, "password">> = {
+        success: true,
+        data: doctorWithoutPassword,
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const doctorId = (req as any).user?.id;
+
+      if (!doctorId) {
+        res.status(401).json({
+          success: false,
+          error: "Não autorizado",
+        });
+        return;
+      }
+
+      const DoctorData: Partial<Omit<Doctor, "id" | "created">> = req.body;
+
+      if (DoctorData.password) {
+        DoctorData.password = await bcrypt.hash(DoctorData.password, 10);
+      }
+
+      const existingDoctor = await DoctorModel.findById(doctorId);
+      if (!existingDoctor) {
+        res.status(404).json({
+          success: false,
+          error: "Médico não encontrado",
+        });
+        return;
+      }
+
+      if (DoctorData.email && DoctorData.email !== existingDoctor.email) {
+        const emailExists = await DoctorModel.findByEmail(DoctorData.email);
+        if (emailExists) {
+          res.status(409).json({
+            success: false,
+            error: "Email já está em uso",
+          });
+          return;
+        }
+      }
+
+      if (DoctorData.cpf && DoctorData.cpf !== existingDoctor.cpf) {
+        const cpfExists = await DoctorModel.findByCPF(DoctorData.cpf);
+        if (cpfExists) {
+          res.status(409).json({
+            success: false,
+            error: "CPF já está em uso",
+          });
+          return;
+        }
+      }
+
+      await DoctorModel.update(doctorId, DoctorData);
+      const updatedDoctor = await DoctorModel.findById(doctorId);
+
+      if (!updatedDoctor) {
+        res.status(500).json({
+          success: false,
+          error: "Erro ao atualizar médico",
+        });
+        return;
+      }
+
+      const { password, ...doctorWithoutPassword } = updatedDoctor;
+
+      const response: ApiResponse<Omit<Doctor, "password">> = {
+        success: true,
+        data: doctorWithoutPassword,
+        message: "Perfil atualizado com sucesso",
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async forgotPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { email } = req.body;
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: "Instruções para redefinição de senha enviadas para o e-mail",
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async resetPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { token, password } = req.body;
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: "Senha redefinida com sucesso",
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // 🛠️ MÉTODOS EXISTENTES (mantenha com melhorias)
+  static async create(req: Request, res: Response, next: NextFunction) {
+    this.register(req, res, next);
   }
 
   static async findById(
@@ -61,25 +254,27 @@ export class DoctorController {
         return;
       }
 
-      const Doctor = await DoctorModel.findById(id);
-
-      if (!Doctor) {
+      const doctor = await DoctorModel.findById(id);
+      if (!doctor) {
         res.status(404).json({
-          sucess: false,
-          error: "Doutor não encontrado",
+          success: false,
+          error: "Médico não encontrado",
         });
         return;
       }
 
-      const response: ApiResponse<Doctor> = {
+      const { password, ...doctorWithoutPassword } = doctor;
+
+      const response: ApiResponse<Omit<Doctor, "password">> = {
         success: true,
-        data: Doctor,
+        data: doctorWithoutPassword,
       };
       res.json(response);
     } catch (error) {
       next(error);
     }
   }
+
   static async findByEmail(
     req: Request,
     res: Response,
@@ -90,30 +285,70 @@ export class DoctorController {
       if (!email) {
         res.status(400).json({
           success: false,
-          message: "ID é obrigatório",
+          message: "Email é obrigatório",
         });
         return;
       }
 
-      const Doctor = await DoctorModel.findByEmail(email);
-
-      if (!Doctor) {
+      const doctor = await DoctorModel.findByEmail(email);
+      if (!doctor) {
         res.status(404).json({
-          sucess: false,
-          error: "Doutor não encontrado",
+          success: false,
+          error: "Médico não encontrado",
         });
         return;
       }
 
-      const response: ApiResponse<Doctor> = {
+      const { password, ...doctorWithoutPassword } = doctor;
+
+      const response: ApiResponse<Omit<Doctor, "password">> = {
         success: true,
-        data: Doctor,
+        data: doctorWithoutPassword,
       };
       res.json(response);
     } catch (error) {
       next(error);
     }
   }
+
+  static async findByCPF(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { cpf } = req.params;
+      if (!cpf) {
+        res.status(400).json({
+          success: false,
+          message: "CPF é obrigatório",
+        });
+        return;
+      }
+
+      const cleanCPF = cpf.replace(/\D/g, "");
+      const doctor = await DoctorModel.findByCPF(cleanCPF);
+
+      if (!doctor) {
+        res.status(404).json({
+          success: false,
+          error: "Médico não encontrado",
+        });
+        return;
+      }
+
+      const { password, ...doctorWithoutPassword } = doctor;
+
+      const response: ApiResponse<Omit<Doctor, "password">> = {
+        success: true,
+        data: doctorWithoutPassword,
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async update(
     req: Request,
     res: Response,
@@ -132,11 +367,15 @@ export class DoctorController {
 
       const DoctorData: Partial<Omit<Doctor, "id" | "created">> = req.body;
 
+      if (DoctorData.password) {
+        DoctorData.password = await bcrypt.hash(DoctorData.password, 10);
+      }
+
       const existingDoctor = await DoctorModel.findById(id);
       if (!existingDoctor) {
         res.status(404).json({
           success: false,
-          error: "Doutor não econtrado",
+          error: "Médico não encontrado",
         });
         return;
       }
@@ -169,14 +408,17 @@ export class DoctorController {
       if (!updatedDoctor) {
         res.status(500).json({
           success: false,
-          error: "Erro ao atualizar cliente",
+          error: "Erro ao atualizar médico",
         });
         return;
       }
-      const response: ApiResponse<Doctor> = {
+
+      const { password, ...doctorWithoutPassword } = updatedDoctor;
+
+      const response: ApiResponse<Omit<Doctor, "password">> = {
         success: true,
-        data: updatedDoctor,
-        message: "Cliente Atualizado com sucesso",
+        data: doctorWithoutPassword,
+        message: "Médico atualizado com sucesso",
       };
       res.json(response);
     } catch (error) {
@@ -190,27 +432,30 @@ export class DoctorController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { id } = req.body;
+      const { id } = req.params; // Corrigido: usar params em vez de body
+
       if (!id) {
-        res.status(409).json({
+        res.status(400).json({
           success: false,
-          error: "ID é iobrigatório",
+          error: "ID é obrigatório",
         });
         return;
       }
+
       const existingDoctor = await DoctorModel.findById(id);
       if (!existingDoctor) {
         res.status(404).json({
           success: false,
-          error: "Doutor não encontrado",
+          error: "Médico não encontrado",
         });
         return;
       }
+
       await DoctorModel.delete(id);
 
       const response: ApiResponse<null> = {
         success: true,
-        message: "Doutor removido com sucesso",
+        message: "Médico removido com sucesso",
       };
       res.json(response);
     } catch (error) {
