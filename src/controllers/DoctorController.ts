@@ -90,7 +90,7 @@ export class DoctorController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const doctorId = req.user?.id; // ← Agora vem do middleware
+      const doctorId = req.user?.id;
 
       if (!doctorId) {
         res.status(401).json({
@@ -99,7 +99,23 @@ export class DoctorController {
         });
         return;
       }
-      // ... resto do método
+
+      const doctor = await DoctorModel.findById(doctorId);
+      if (!doctor) {
+        res.status(404).json({
+          success: false,
+          error: "Médico não encontrado",
+        });
+        return;
+      }
+
+      const { password, ...doctorWithoutPassword } = doctor;
+
+      const response: ApiResponse<Omit<Doctor, "password">> = {
+        success: true,
+        data: doctorWithoutPassword,
+      };
+      res.json(response);
     } catch (error) {
       next(error);
     }
