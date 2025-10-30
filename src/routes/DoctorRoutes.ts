@@ -9,7 +9,7 @@ import {
   validateForgotPassword,
   validateResetPassword,
 } from "../middleware/validation.js";
-// import { authenticate } from "../middleware/auth.js";
+import { authenticate, requireDoctor } from "../middleware/auth.js"; // ← Importar
 
 const router = Router();
 
@@ -28,13 +28,35 @@ router.post(
 );
 
 // ROTAS AUTENTICADAS
-router.get("/profile", DoctorController.getProfile);
-router.put("/profile", validateDoctorUpdate, DoctorController.updateProfile);
+router.get(
+  "/profile",
+  authenticate,
+  requireDoctor,
+  DoctorController.getProfile
+);
+router.put(
+  "/profile",
+  authenticate,
+  requireDoctor,
+  validateDoctorUpdate,
+  DoctorController.updateProfile
+);
 
 // ROTAS ADM
-router.get("/:id", validateID, DoctorController.findById);
-router.get("/cpf/:cpf", validateCPFParam, DoctorController.findByCPF);
-router.put("/:id", validateID, validateDoctorUpdate, DoctorController.update);
-router.delete("/:id", validateID, DoctorController.delete);
+router.get("/:id", authenticate, validateID, DoctorController.findById);
+router.get(
+  "/cpf/:cpf",
+  authenticate,
+  validateCPFParam,
+  DoctorController.findByCPF
+);
+router.put(
+  "/:id",
+  authenticate,
+  validateID,
+  validateDoctorUpdate,
+  DoctorController.update
+);
+router.delete("/:id", authenticate, validateID, DoctorController.delete);
 
 export default router;

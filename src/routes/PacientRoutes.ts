@@ -9,7 +9,7 @@ import {
   validateForgotPassword,
   validateResetPassword,
 } from "../middleware/validation.js";
-// import { authenticate } from "../middleware/auth.js"; // Você vai precisar criar este middleware
+import { authenticate, requirePacient } from "../middleware/auth.js"; // ← Importar
 
 const router = Router();
 
@@ -28,18 +28,36 @@ router.post(
 );
 
 // ROTAS AUTENTICADAS
-router.get("/profile", /* authenticate, */ PacientController.getProfile);
+router.get(
+  "/profile",
+  authenticate,
+  requirePacient,
+  PacientController.getProfile
+);
 router.put(
   "/profile",
-  /* authenticate, */ validatePacientUpdate,
+  authenticate,
+  requirePacient,
+  validatePacientUpdate,
   PacientController.updateProfile
 );
 
-// ROTAS ADM
-router.get("/", PacientController.findById); // Para listar todos? Você precisará criar este método
-router.get("/:id", validateID, PacientController.findById);
-router.get("/cpf/:cpf", validateCPFParam, PacientController.findByCPF);
-router.put("/:id", validateID, validatePacientUpdate, PacientController.update);
-router.delete("/:id", validateID, PacientController.delete);
+// ROTAS ADM (protegidas mas sem restrição de tipo)
+router.get("/", authenticate, PacientController.findById); // Ajustar para listar todos
+router.get("/:id", authenticate, validateID, PacientController.findById);
+router.get(
+  "/cpf/:cpf",
+  authenticate,
+  validateCPFParam,
+  PacientController.findByCPF
+);
+router.put(
+  "/:id",
+  authenticate,
+  validateID,
+  validatePacientUpdate,
+  PacientController.update
+);
+router.delete("/:id", authenticate, validateID, PacientController.delete);
 
 export default router;

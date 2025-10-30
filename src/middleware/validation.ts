@@ -18,7 +18,7 @@ export const handleValidationErrors = (
   next();
 };
 
-// 🔐 NOVAS VALIDAÇÕES PARA AUTENTICAÇÃO
+//  NOVAS VALIDAÇÕES PARA AUTENTICAÇÃO
 export const validateLogin = [
   body("login").notEmpty().withMessage("E-mail ou CPF é obrigatório"),
   body("password")

@@ -142,8 +142,7 @@ export class PacientController {
     next: NextFunction
   ): Promise<void> {
     try {
-      // Isso assumindo que você tem um middleware de autenticação
-      const pacientId = (req as any).user?.id;
+      const pacientId = req.user?.id;
 
       if (!pacientId) {
         res.status(401).json({
@@ -162,7 +161,6 @@ export class PacientController {
         return;
       }
 
-      // Remover senha da resposta
       const { password, ...pacientWithoutPassword } = pacient;
 
       const response: ApiResponse<Omit<Pacient, "password">> = {
@@ -181,7 +179,7 @@ export class PacientController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const pacientId = (req as any).user?.id;
+      const pacientId = req.user?.id;
 
       if (!pacientId) {
         res.status(401).json({
