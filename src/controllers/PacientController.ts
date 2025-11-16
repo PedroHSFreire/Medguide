@@ -14,19 +14,29 @@ export class PacientController {
     try {
       const { login, password } = req.body;
 
+      console.log("🔐 Tentativa de login:", {
+        login,
+        passwordLength: password?.length,
+      });
+
       // Buscar paciente por email ou CPF
       let pacient: Pacient | null = null;
 
       if (login.includes("@")) {
+        console.log("📧 Buscando por email:", login);
         const result = await PacientModel.findByEmail(login);
         pacient = result ? result : null;
       } else {
         const cleanCPF = login.replace(/\D/g, "");
+        console.log("🔢 Buscando por CPF:", cleanCPF);
         const result = await PacientModel.findByCPF(cleanCPF);
         pacient = result ? result : null;
       }
 
+      console.log("👤 Paciente encontrado:", pacient ? "Sim" : "Não");
+
       if (!pacient) {
+        console.log("❌ Paciente não encontrado");
         res.status(401).json({
           success: false,
           error: "Credenciais inválidas",
@@ -35,7 +45,10 @@ export class PacientController {
       }
 
       // Verificar senha
+      console.log("🔑 Verificando senha...");
       const isPasswordValid = await bcrypt.compare(password, pacient.password);
+      console.log("✅ Senha válida:", isPasswordValid);
+
       if (!isPasswordValid) {
         res.status(401).json({
           success: false,
@@ -43,7 +56,6 @@ export class PacientController {
         });
         return;
       }
-
       // Gerar token JWT
       const token = jwt.sign(
         {

@@ -20,12 +20,16 @@ export const handleValidationErrors = (
 
 //  NOVAS VALIDAÇÕES PARA AUTENTICAÇÃO
 export const validateLogin = [
-  body("login").notEmpty().withMessage("E-mail ou CPF é obrigatório"),
+  body("login")
+    .notEmpty()
+    .withMessage("E-mail ou CPF é obrigatório")
+    .isLength({ min: 3 })
+    .withMessage("Login deve ter pelo menos 3 caracteres"),
   body("password")
     .notEmpty()
     .withMessage("Senha é obrigatória")
-    .isLength({ min: 6 })
-    .withMessage("Senha deve ter pelo menos 6 caracteres"),
+    .isLength({ min: 1 })
+    .withMessage("Senha é obrigatória"),
   handleValidationErrors,
 ];
 

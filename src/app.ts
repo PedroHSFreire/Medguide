@@ -10,8 +10,7 @@ const corsOptions = {
   origin: function (origin: string | undefined, callback: any) {
     const allowedOrigins = [
       "http://localhost:3000",
-      "http://localhost:3001",
-      "https://medguide-y0j4.onrender.com",
+      "http://localhost:8080, https://medguide-y0j4.onrender.com",
     ];
 
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
