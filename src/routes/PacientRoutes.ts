@@ -42,7 +42,6 @@ router.put(
   PacientController.updateProfile
 );
 
-// ROTAS ADM (protegidas mas sem restrição de tipo)
 router.get("/", authenticate, PacientController.findById); // Ajustar para listar todos
 router.get("/:id", authenticate, validateID, PacientController.findById);
 router.get(
@@ -57,6 +56,30 @@ router.put(
   validateID,
   validatePacientUpdate,
   PacientController.update
+);
+router.post(
+  "/:id/address",
+  authenticate,
+  validateID,
+  PacientController.createAddress
+);
+router.get(
+  "/:id/address",
+  authenticate,
+  validateID,
+  PacientController.getAddress
+);
+router.put(
+  "/:id/address",
+  authenticate,
+  validateID,
+  PacientController.updateAddress
+);
+router.delete(
+  "/:id/address",
+  authenticate,
+  validateID,
+  PacientController.deleteAddress
 );
 router.delete("/:id", authenticate, validateID, PacientController.delete);
 

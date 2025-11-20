@@ -1,11 +1,10 @@
 import { Response, Request, NextFunction } from "express";
 import { DoctorModel } from "../models/DoctorModels.js";
-import { Doctor, ApiResponse } from "../types/index.js";
+import { Doctor, ApiResponse, DoctorAddress } from "../types/index.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export class DoctorController {
-  // MÉTODOS DE AUTENTICAÇÃO
   static async login(
     req: Request,
     res: Response,
@@ -234,7 +233,6 @@ export class DoctorController {
     }
   }
 
-  // 🛠️ MÉTODOS EXISTENTES (mantenha com melhorias)
   static async create(req: Request, res: Response, next: NextFunction) {
     this.register(req, res, next);
   }
@@ -456,6 +454,171 @@ export class DoctorController {
       const response: ApiResponse<null> = {
         success: true,
         message: "Médico removido com sucesso",
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+  static async createAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID é obrigatório",
+        });
+        return;
+      }
+      const addressData: Omit<DoctorAddress, "id"> = { ...req.body, fk_id: id };
+      const doctor = await DoctorModel.findById(id);
+      if (!doctor) {
+        res.status(404).json({
+          success: false,
+          error: "Médico não encontrado",
+        });
+        return;
+      }
+
+      // Verificar se já tem endereço
+      const existingAddress = await DoctorModel.findAddressByDoctorId(id);
+      if (existingAddress) {
+        res.status(409).json({
+          success: false,
+          error: "Médico já possui endereço cadastrado",
+        });
+        return;
+      }
+
+      const addressId = await DoctorModel.createAddress(addressData);
+
+      const response: ApiResponse<{ id: string }> = {
+        success: true,
+        data: { id: addressId },
+        message: "Endereço do médico criado com sucesso",
+      };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID é obrigatório",
+        });
+        return;
+      }
+      const address = await DoctorModel.findAddressByDoctorId(id);
+
+      if (!address) {
+        res.status(404).json({
+          success: false,
+          error: "Endereço não encontrado",
+        });
+        return;
+      }
+
+      const response: ApiResponse<DoctorAddress> = {
+        success: true,
+        data: address,
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID é obrigatório",
+        });
+        return;
+      }
+      const addressData: Partial<Omit<DoctorAddress, "id" | "fk_id">> =
+        req.body;
+
+      // Verificar se médico existe
+      const doctor = await DoctorModel.findById(id);
+      if (!doctor) {
+        res.status(404).json({
+          success: false,
+          error: "Médico não encontrado",
+        });
+        return;
+      }
+
+      // Verificar se endereço existe
+      const existingAddress = await DoctorModel.findAddressByDoctorId(id);
+      if (!existingAddress) {
+        res.status(404).json({
+          success: false,
+          error: "Endereço não encontrado",
+        });
+        return;
+      }
+
+      await DoctorModel.updateAddress(id, addressData);
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: "Endereço atualizado com sucesso",
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID é obrigatório",
+        });
+        return;
+      }
+      // Verificar se endereço existe
+      const existingAddress = await DoctorModel.findAddressByDoctorId(id);
+      if (!existingAddress) {
+        res.status(404).json({
+          success: false,
+          error: "Endereço não encontrado",
+        });
+        return;
+      }
+
+      await DoctorModel.deleteAddress(id);
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: "Endereço removido com sucesso",
       };
       res.json(response);
     } catch (error) {

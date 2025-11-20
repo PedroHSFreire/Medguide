@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 import { PacientModel } from "../models/PacientModels.js";
-import { Pacient, ApiResponse } from "../types/index.js";
+import { Pacient, ApiResponse, PacientAddress } from "../types/index.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -28,15 +28,15 @@ export class PacientController {
         pacient = result ? result : null;
       } else {
         const cleanCPF = login.replace(/\D/g, "");
-        console.log("🔢 Buscando por CPF:", cleanCPF);
+        console.log(" Buscando por CPF:", cleanCPF);
         const result = await PacientModel.findByCPF(cleanCPF);
         pacient = result ? result : null;
       }
 
-      console.log("👤 Paciente encontrado:", pacient ? "Sim" : "Não");
+      console.log(" Paciente encontrado:", pacient ? "Sim" : "Não");
 
       if (!pacient) {
-        console.log("❌ Paciente não encontrado");
+        console.log(" Paciente não encontrado");
         res.status(401).json({
           success: false,
           error: "Credenciais inválidas",
@@ -273,9 +273,6 @@ export class PacientController {
     try {
       const { email } = req.body;
 
-      // Implementar lógica de recuperação de senha
-      // Enviar email com token, etc.
-
       const response: ApiResponse<null> = {
         success: true,
         message: "Instruções para redefinição de senha enviadas para o e-mail",
@@ -295,7 +292,6 @@ export class PacientController {
       const { token, password } = req.body;
 
       // Implementar lógica de redefinição de senha
-      // Verificar token e atualizar senha
 
       const response: ApiResponse<null> = {
         success: true,
@@ -307,7 +303,6 @@ export class PacientController {
     }
   }
 
-  // 🛠️ MÉTODOS EXISTENTES (mantenha os que você já tem com pequenas melhorias)
   static async create(
     req: Request,
     res: Response,
@@ -448,7 +443,6 @@ export class PacientController {
 
       const PacientData: Partial<Omit<Pacient, "id" | "created">> = req.body;
 
-      // Se estiver atualizando a senha, criptografar
       if (PacientData.password) {
         PacientData.password = await bcrypt.hash(PacientData.password, 10);
       }
@@ -538,6 +532,176 @@ export class PacientController {
       const response: ApiResponse<null> = {
         success: true,
         message: "Paciente removido com sucesso",
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+  static async createAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID é obrigatório",
+        });
+        return;
+      }
+      const addressData: Omit<PacientAddress, "id"> = {
+        ...req.body,
+        fk_id: id,
+      };
+
+      // Verificar se paciente existe
+      const pacient = await PacientModel.findById(id);
+      if (!pacient) {
+        res.status(404).json({
+          success: false,
+          error: "Paciente não encontrado",
+        });
+        return;
+      }
+
+      // Verificar se já tem endereço
+      const existingAddress = await PacientModel.findAddressByPacientId(id);
+      if (existingAddress) {
+        res.status(409).json({
+          success: false,
+          error: "Paciente já possui endereço cadastrado",
+        });
+        return;
+      }
+
+      const addressId = await PacientModel.createAddress(addressData);
+
+      const response: ApiResponse<{ id: string }> = {
+        success: true,
+        data: { id: addressId },
+        message: "Endereço do paciente criado com sucesso",
+      };
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID é obrigatório",
+        });
+        return;
+      }
+      const address = await PacientModel.findAddressByPacientId(id);
+
+      if (!address) {
+        res.status(404).json({
+          success: false,
+          error: "Endereço não encontrado",
+        });
+        return;
+      }
+
+      const response: ApiResponse<PacientAddress> = {
+        success: true,
+        data: address,
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID é obrigatório",
+        });
+        return;
+      }
+      const addressData: Partial<Omit<PacientAddress, "id" | "fk_id">> =
+        req.body;
+
+      // Verificar se paciente existe
+      const pacient = await PacientModel.findById(id);
+      if (!pacient) {
+        res.status(404).json({
+          success: false,
+          error: "Paciente não encontrado",
+        });
+        return;
+      }
+
+      // Verificar se endereço existe
+      const existingAddress = await PacientModel.findAddressByPacientId(id);
+      if (!existingAddress) {
+        res.status(404).json({
+          success: false,
+          error: "Endereço não encontrado",
+        });
+        return;
+      }
+
+      await PacientModel.updateAddress(id, addressData);
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: "Endereço atualizado com sucesso",
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID é obrigatório",
+        });
+        return;
+      }
+      // Verificar se endereço existe
+      const existingAddress = await PacientModel.findAddressByPacientId(id);
+      if (!existingAddress) {
+        res.status(404).json({
+          success: false,
+          error: "Endereço não encontrado",
+        });
+        return;
+      }
+
+      await PacientModel.deleteAddress(id);
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: "Endereço removido com sucesso",
       };
       res.json(response);
     } catch (error) {

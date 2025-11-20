@@ -57,6 +57,30 @@ router.put(
   validateDoctorUpdate,
   DoctorController.update
 );
+router.post(
+  "/:id/address",
+  authenticate,
+  validateID,
+  DoctorController.createAddress
+);
+router.get(
+  "/:id/address",
+  authenticate,
+  validateID,
+  DoctorController.getAddress
+);
+router.put(
+  "/:id/address",
+  authenticate,
+  validateID,
+  DoctorController.updateAddress
+);
+router.delete(
+  "/:id/address",
+  authenticate,
+  validateID,
+  DoctorController.deleteAddress
+);
 router.delete("/:id", authenticate, validateID, DoctorController.delete);
 
 export default router;

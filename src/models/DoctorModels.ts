@@ -1,4 +1,4 @@
-import { Doctor } from "../types/index.js";
+import { Doctor, DoctorAddress } from "../types/index.js";
 import { runQuery, getQuery, allQuery } from "../database/connection.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -186,6 +186,86 @@ export class DoctorModel {
     } catch (error) {
       throw new Error(
         `Erro ao deletar médico: ${
+          error instanceof Error ? error.message : "Erro desconhecido"
+        }`
+      );
+    }
+  }
+  static async createAddress(
+    address: Omit<DoctorAddress, "id">
+  ): Promise<string> {
+    try {
+      const id = uuidv4();
+      const sql = `
+        INSERT INTO DoctorAddress (cep, rua, number, bairro, fk_id)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+      const result = await runQuery(sql, [
+        address.cep,
+        address.rua,
+        address.number,
+        address.bairro,
+        address.fk_id,
+      ]);
+      return id;
+    } catch (error) {
+      throw new Error(
+        `Erro ao criar endereço do médico: ${
+          error instanceof Error ? error.message : "Erro desconhecido"
+        }`
+      );
+    }
+  }
+
+  static async findAddressByDoctorId(
+    fk_id: string
+  ): Promise<DoctorAddress | undefined> {
+    try {
+      const sql = `SELECT * FROM DoctorAddress WHERE fk_id = ?`;
+      return await getQuery<DoctorAddress>(sql, [fk_id]);
+    } catch (error) {
+      throw new Error(
+        `Erro ao buscar endereço do médico: ${
+          error instanceof Error ? error.message : "Erro desconhecido"
+        }`
+      );
+    }
+  }
+
+  static async updateAddress(
+    fk_id: string,
+    address: Partial<Omit<DoctorAddress, "id" | "fk_id">>
+  ): Promise<boolean> {
+    try {
+      const fields = Object.keys(address)
+        .map((key) => `${key} = ?`)
+        .join(", ");
+      const values = Object.values(address);
+
+      if (fields.length === 0) {
+        throw new Error("Nenhum campo fornecido para atualização");
+      }
+
+      const sql = `UPDATE DoctorAddress SET ${fields} WHERE fk_id = ?`;
+      await runQuery(sql, [...values, fk_id]);
+      return true;
+    } catch (error) {
+      throw new Error(
+        `Erro ao atualizar endereço do médico: ${
+          error instanceof Error ? error.message : "Erro desconhecido"
+        }`
+      );
+    }
+  }
+
+  static async deleteAddress(fk_id: string): Promise<boolean> {
+    try {
+      const sql = `DELETE FROM DoctorAddress WHERE fk_id = ?`;
+      await runQuery(sql, [fk_id]);
+      return true;
+    } catch (error) {
+      throw new Error(
+        `Erro ao deletar endereço do médico: ${
           error instanceof Error ? error.message : "Erro desconhecido"
         }`
       );

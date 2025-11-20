@@ -33,7 +33,17 @@ async function createTables(): Promise<void> {
       created DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `;
-
+  const createDoctorAddress = `
+  CREATE TABLE IF NOT EXISTS DoctorAddress(
+   id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cep TEXT NOT NULL,
+    rua TEXT NOT NULL,
+    number INTEGER NOT NULL,  
+    bairro TEXT NOT NULL,
+    fk_id TEXT NOT NULL,      
+    FOREIGN KEY (fk_id) REFERENCES Doctor(id)
+    )
+  `;
   const createPacientTable = `
     CREATE TABLE IF NOT EXISTS Pacient (
       id TEXT PRIMARY KEY,
@@ -44,33 +54,50 @@ async function createTables(): Promise<void> {
       created DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `;
+  const createPacientAddress = `
+  CREATE TABLE IF NOT EXISTS PacientAddress(
+    id TEXT PRIMARY KEY AUTOINCREMENT,
+    cep TEXT NOT NULL,
+    rua TEXT NOT NULL,
+    number INTEGER NOT NULL,
+    bairro TEXT NOT NULL,
+    fk_id TEXT NOT NULL, 
+    FOREIGN KEY (fk_id) REFERENCES Pacient (id)
+  )
+  `;
+  const createAppointmentTable = `
+  CREATE TABLE IF NOT EXISTS Appointment (
+    id TEXT PRIMARY KEY AUTOINCREMENT,
+    date_time DATETIME NOT NULL,           
+    status TEXT NOT NULL DEFAULT 'agendada',
+    type TEXT NOT NULL,                                    
+    symptoms TEXT NOT NULL,
+    diagnosis TEXT,
+    prescription TEXT,
+    doctor_notes TEXT,
+    specialty TEXT NOT NULL,
+    doctor_id TEXT NOT NULL,
+    doctor_name TEXT NOT NULL,
+    pacient_id TEXT NOT NULL,            
+    created DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES Doctor(id),
+    FOREIGN KEY (pacient_id) REFERENCES Pacient(id)
+)`;
 
   try {
     await runQuery(createDoctorTable);
     console.log("abela Doctor criada/verificada");
-
     await runQuery(createPacientTable);
     console.log("Tabela Pacient criada/verificada");
+    await runQuery(createPacientAddress);
+    console.log("tabela de endereço do paciente criada com sucesso");
+    await runQuery(createDoctorAddress);
+    console.log("tabela de endereço do médico criada com sucesso");
+    await runQuery(createAppointmentTable);
+    console.log("tabela de appointment de atendimento criada com sucesso");
   } catch (error) {
     console.error("Erro ao criar tabelas:", error);
     throw error;
-  }
-}
-async function addColumn(
-  table: string,
-  column: string,
-  type: string
-): Promise<void> {
-  const sql = `ALTER TABLE ${table} ADD COLUMN ${column} ${type}`;
-  try {
-    await runQuery(sql);
-    console.log(`Coluna ${column} adicionada na tabela ${table}`);
-  } catch (error: any) {
-    if (error.message.includes("duplicate column name")) {
-      console.log(`Coluna ${column} já existe na tabela ${table}`);
-    } else {
-      throw error;
-    }
   }
 }
 
