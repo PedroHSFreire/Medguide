@@ -33,17 +33,61 @@ app.get("/", (req, res) => {
     message: "API está funcionando! Acesse /api/health para ver o status",
     available_routes: {
       health: "GET /api/health",
+      auth: {
+        doctor: [
+          "POST /api/doctor",
+          "GET /api/doctor/:id",
+          "PUT /api/doctor/:id",
+          "DELETE /api/doctor/:id",
+        ],
+        pacient: [
+          "POST /api/pacient",
+          "GET /api/pacient/:id",
+          "PUT /api/pacient/:id",
+          "DELETE /api/pacient/:id",
+        ],
+      },
+      // Perfil
       doctor: [
-        "POST /api/doctor",
+        "GET /api/doctor/profile",
+        "PUT /api/doctor/profile",
         "GET /api/doctor/:id",
+        "GET /api/doctor/cpf/:cpf",
         "PUT /api/doctor/:id",
         "DELETE /api/doctor/:id",
+
+        //  Endereços do Doctor
+        "POST /api/doctor/:id/address",
+        "GET /api/doctor/:id/address",
+        "PUT /api/doctor/:id/address",
+        "DELETE /api/doctor/:id/address",
       ],
+
+      // ROTAS DO PACIENT
       pacient: [
-        "POST /api/pacient",
+        "GET /api/pacient/profile",
+        "PUT /api/pacient/profile",
+        "GET /api/pacient/",
         "GET /api/pacient/:id",
+        "GET /api/pacient/cpf/:cpf",
         "PUT /api/pacient/:id",
         "DELETE /api/pacient/:id",
+
+        //  Endereços do Pacient
+        "POST /api/pacient/:id/address",
+        "GET /api/pacient/:id/address",
+        "PUT /api/pacient/:id/address",
+        "DELETE /api/pacient/:id/address",
+      ],
+
+      //  ROTAS DE AGENDAMENTOS
+      appointment: [
+        "POST /api/appointment",
+        "GET /api/appointment/:id",
+        "GET /api/appointment/pacient/:pacientId",
+        "GET /api/appointment/doctor/:doctorId",
+        "PUT /api/appointment/:id",
+        "DELETE /api/appointment/:id",
       ],
     },
   });
