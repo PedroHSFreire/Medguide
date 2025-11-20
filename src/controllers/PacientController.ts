@@ -335,7 +335,6 @@ export class PacientController {
         return;
       }
 
-      // Remover senha da resposta
       const { password, ...pacientWithoutPassword } = Pacient;
 
       const response: ApiResponse<Omit<Pacient, "password">> = {
@@ -372,7 +371,6 @@ export class PacientController {
         return;
       }
 
-      // Remover senha da resposta
       const { password, ...pacientWithoutPassword } = Pacient;
 
       const response: ApiResponse<Omit<Pacient, "password">> = {
@@ -411,7 +409,6 @@ export class PacientController {
         return;
       }
 
-      // Remover senha da resposta
       const { password, ...pacientWithoutPassword } = Pacient;
 
       const response: ApiResponse<Omit<Pacient, "password">> = {

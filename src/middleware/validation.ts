@@ -67,7 +67,7 @@ export const validatePacientUpdate = [
 export const validateDoctorUpdate = [
   body("name").optional().isLength({ min: 1, max: 255 }),
   body("email").optional().isEmail(),
-  body("CRM").optional().isInt(),
+  body("CRM").notEmpty(),
   body("specialty").optional(),
   body("password").optional().isLength({ min: 6 }),
   body("cpf").optional(),

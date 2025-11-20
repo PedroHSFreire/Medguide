@@ -66,7 +66,7 @@ export class DoctorModel {
     }
   }
 
-  static async findByCRM(CRM: number): Promise<Doctor | undefined> {
+  static async findByCRM(CRM: string): Promise<Doctor | undefined> {
     try {
       const sql = "SELECT * FROM Doctor WHERE CRM = ?";
       return await getQuery<Doctor>(sql, [CRM]);

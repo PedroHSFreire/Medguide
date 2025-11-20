@@ -15,6 +15,11 @@ export class DoctorController {
 
       let doctor: Doctor | null = null;
 
+      console.log("🔐 Tentativa de login:", {
+        login,
+        passwordLength: password?.length,
+      });
+
       if (login.includes("@")) {
         const result = await DoctorModel.findByEmail(login);
         doctor = result ? result : null;
@@ -51,7 +56,7 @@ export class DoctorController {
         {
           id: doctor.id,
           email: doctor.email,
-          type: "pacient",
+          type: "doctor",
         },
         process.env.JWT_SECRET || "seu-segredo-secreto",
         { expiresIn: "24h" }
@@ -173,7 +178,7 @@ export class DoctorController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const doctorId = (req as any).user?.id;
+      const doctorId = req.user?.id;
 
       if (!doctorId) {
         res.status(401).json({
