@@ -24,7 +24,54 @@ export class DoctorController {
         doctor = result ? result : null;
       }
 
-      // ... resto do código igual
+      console.log("Doctor encontrado:", doctor ? "Sim" : "Não");
+
+      if (!doctor) {
+        console.log(" Doctor não encontrado");
+        res.status(401).json({
+          success: false,
+          error: "Credenciais inválidas",
+        });
+        return;
+      }
+
+      console.log("🔑 Verificando senha...");
+      const isPasswordValid = await bcrypt.compare(password, doctor.password);
+      console.log("✅ Senha válida:", isPasswordValid);
+
+      if (!isPasswordValid) {
+        res.status(401).json({
+          success: false,
+          error: "Credenciais inválidas",
+        });
+        return;
+      }
+
+      const token = jwt.sign(
+        {
+          id: doctor.id,
+          email: doctor.email,
+          type: "pacient",
+        },
+        process.env.JWT_SECRET || "seu-segredo-secreto",
+        { expiresIn: "24h" }
+      );
+
+      // Remover senha da resposta
+      const { password: _, ...doctorWithoutPassword } = doctor;
+
+      const response: ApiResponse<{
+        token: string;
+        doctor: Omit<Doctor, "password">;
+      }> = {
+        success: true,
+        data: {
+          token,
+          doctor: doctorWithoutPassword,
+        },
+        message: "Login realizado com sucesso",
+      };
+      res.json(response);
     } catch (error) {
       next(error);
     }

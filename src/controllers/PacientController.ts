@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export class PacientController {
-  //MÉTODOS DE AUTENTICAÇÃO
   static async login(
     req: Request,
     res: Response,
@@ -56,7 +55,7 @@ export class PacientController {
         });
         return;
       }
-      // Gerar token JWT
+
       const token = jwt.sign(
         {
           id: pacient.id,

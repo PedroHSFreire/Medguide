@@ -26,7 +26,7 @@ async function createTables(): Promise<void> {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
-      CRM INTEGER NOT NULL UNIQUE,
+      CRM TEXT NOT NULL UNIQUE,
       specialty TEXT NOT NULL,
       password TEXT,  
       cpf TEXT, 
