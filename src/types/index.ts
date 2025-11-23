@@ -2,7 +2,7 @@ export interface Doctor {
   id?: string;
   name: string;
   email: string;
-  CRM: number;
+  CRM: string;
   specialty: string;
   password: string;
   cpf: string;

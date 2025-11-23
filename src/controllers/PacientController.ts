@@ -504,7 +504,7 @@ export class PacientController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { id } = req.params; // Corrigido: usar params em vez de body
+      const { id } = req.params;
 
       if (!id) {
         res.status(400).json({
@@ -683,7 +683,6 @@ export class PacientController {
         });
         return;
       }
-      // Verificar se endereço existe
       const existingAddress = await PacientModel.findAddressByPacientId(id);
       if (!existingAddress) {
         res.status(404).json({

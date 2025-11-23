@@ -33,17 +33,19 @@ async function createTables(): Promise<void> {
       created DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `;
+
   const createDoctorAddress = `
   CREATE TABLE IF NOT EXISTS DoctorAddress(
-   id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY AUTOINCREMENT,
     cep TEXT NOT NULL,
     rua TEXT NOT NULL,
     number INTEGER NOT NULL,  
     bairro TEXT NOT NULL,
     fk_id TEXT NOT NULL,      
     FOREIGN KEY (fk_id) REFERENCES Doctor(id)
-    )
+  )
   `;
+
   const createPacientTable = `
     CREATE TABLE IF NOT EXISTS Pacient (
       id TEXT PRIMARY KEY,
@@ -54,6 +56,7 @@ async function createTables(): Promise<void> {
       created DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `;
+
   const createPacientAddress = `
   CREATE TABLE IF NOT EXISTS PacientAddress(
     id TEXT PRIMARY KEY AUTOINCREMENT,
@@ -65,9 +68,10 @@ async function createTables(): Promise<void> {
     FOREIGN KEY (fk_id) REFERENCES Pacient (id)
   )
   `;
+
   const createAppointmentTable = `
   CREATE TABLE IF NOT EXISTS Appointment (
-    id TEXT PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     date_time DATETIME NOT NULL,           
     status TEXT NOT NULL DEFAULT 'agendada',
     type TEXT NOT NULL,                                    
@@ -82,19 +86,19 @@ async function createTables(): Promise<void> {
     created DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (doctor_id) REFERENCES Doctor(id),
     FOREIGN KEY (pacient_id) REFERENCES Pacient(id)
-)`;
+  )`;
 
   try {
     await runQuery(createDoctorTable);
-    console.log("abela Doctor criada/verificada");
+    console.log("✅ Tabela Doctor criada/verificada");
     await runQuery(createPacientTable);
-    console.log("Tabela Pacient criada/verificada");
+    console.log("✅ Tabela Pacient criada/verificada");
     await runQuery(createPacientAddress);
-    console.log("tabela de endereço do paciente criada com sucesso");
+    console.log("✅ Tabela de endereço do paciente criada com sucesso");
     await runQuery(createDoctorAddress);
-    console.log("tabela de endereço do médico criada com sucesso");
+    console.log("✅ Tabela de endereço do médico criada com sucesso");
     await runQuery(createAppointmentTable);
-    console.log("tabela de appointment de atendimento criada com sucesso");
+    console.log("✅ Tabela de appointment criada com sucesso");
   } catch (error) {
     console.error("Erro ao criar tabelas:", error);
     throw error;
@@ -114,10 +118,11 @@ export const closeDatabase = (): Promise<void> => {
   });
 };
 
+// Atualizar runQuery para retornar lastID
 export const runQuery = (
   sql: string,
   params: unknown[] = []
-): Promise<void> => {
+): Promise<{ lastID?: number; changes?: number }> => {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
       if (err) {
@@ -131,7 +136,10 @@ export const runQuery = (
         );
         reject(err);
       } else {
-        resolve();
+        resolve({
+          lastID: this.lastID,
+          changes: this.changes,
+        });
       }
     });
   });

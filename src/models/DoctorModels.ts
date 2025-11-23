@@ -191,15 +191,89 @@ export class DoctorModel {
       );
     }
   }
+
+  // No DoctorModels.ts - método findAllWithAddress
+  static async findAllWithAddress(): Promise<
+    (Doctor & { address?: DoctorAddress })[]
+  > {
+    try {
+      console.log("🔍 Iniciando busca de médicos com endereço...");
+
+      const sql = `
+      SELECT d.*, da.id as address_id, da.cep, da.rua, da.number, da.bairro, da.fk_id
+      FROM Doctor d 
+      LEFT JOIN DoctorAddress da ON d.id = da.fk_id
+    `;
+
+      console.log("📝 SQL:", sql);
+
+      const results = await allQuery<any>(sql);
+      console.log(`🎯 Número de médicos encontrados: ${results.length}`);
+
+      if (results.length === 0) {
+        console.log("⚠️ NENHUM médico encontrado na tabela Doctor");
+
+        const checkDoctors = await allQuery<any>("SELECT * FROM Doctor");
+        console.log(`👨‍⚕️ Médicos na tabela Doctor: ${checkDoctors.length}`);
+        checkDoctors.forEach((doc: any, index: number) => {
+          console.log(
+            `  ${index + 1}. ${doc.name} - ${doc.specialty} - ID: ${doc.id}`
+          );
+        });
+      }
+
+      const transformed: (Doctor & { address?: DoctorAddress })[] = results.map(
+        (row: any) => {
+          const doctorData: Doctor = {
+            id: row.id,
+            name: row.name,
+            email: row.email,
+            CRM: row.CRM,
+            specialty: row.specialty,
+            password: row.password,
+            cpf: row.cpf,
+            created: row.created,
+          };
+
+          console.log(
+            `👨‍⚕️ Processando médico: ${doctorData.name} - ${doctorData.specialty}`
+          );
+
+          if (!row.cep) {
+            return doctorData;
+          }
+
+          const addressData: DoctorAddress = {
+            id: row.address_id,
+            cep: row.cep,
+            rua: row.rua,
+            number: row.number,
+            bairro: row.bairro,
+            fk_id: row.fk_id,
+          };
+
+          return {
+            ...doctorData,
+            address: addressData,
+          };
+        }
+      );
+
+      console.log("✅ Transformação concluída");
+      return transformed;
+    } catch (error) {
+      console.error("❌ Erro crítico no findAllWithAddress:", error);
+      throw error;
+    }
+  }
   static async createAddress(
     address: Omit<DoctorAddress, "id">
-  ): Promise<string> {
+  ): Promise<number> {
     try {
-      const id = uuidv4();
       const sql = `
-        INSERT INTO DoctorAddress (cep, rua, number, bairro, fk_id)
-        VALUES (?, ?, ?, ?, ?)
-      `;
+      INSERT INTO DoctorAddress (cep, rua, number, bairro, fk_id)
+      VALUES (?, ?, ?, ?, ?)
+    `;
       const result = await runQuery(sql, [
         address.cep,
         address.rua,
@@ -207,7 +281,7 @@ export class DoctorModel {
         address.bairro,
         address.fk_id,
       ]);
-      return id;
+      return 1; // SQLite retorna o ID via callback, mas nossa implementação atual não captura
     } catch (error) {
       throw new Error(
         `Erro ao criar endereço do médico: ${
@@ -216,7 +290,6 @@ export class DoctorModel {
       );
     }
   }
-
   static async findAddressByDoctorId(
     fk_id: string
   ): Promise<DoctorAddress | undefined> {

@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AppointmentModel } from "../models/AppointmentModel.js";
+import { DoctorModel } from "../models/DoctorModels.js";
+import { PacientModel } from "../models/PacientModels.js";
 import {
   Appointment,
   CreateAppointmentDTO,
@@ -13,9 +15,47 @@ export class AppointmentController {
     next: NextFunction
   ): Promise<void> {
     try {
+      console.log("📥 Recebendo requisição para criar agendamento");
+      console.log("📦 Dados recebidos:", req.body);
+
       const appointmentData: CreateAppointmentDTO = req.body;
+
+      // Verificar se médico existe
+      const doctor = await DoctorModel.findById(appointmentData.doctor_id);
+      console.log(
+        "👨‍⚕️ Médico encontrado:",
+        doctor ? `Sim - ${doctor.name}` : "Não"
+      );
+
+      if (!doctor) {
+        res.status(404).json({
+          success: false,
+          error: "Médico não encontrado",
+        });
+        return;
+      }
+
+      // Verificar se paciente existe
+      const pacient = await PacientModel.findById(appointmentData.pacient_id);
+      console.log(
+        "👤 Paciente encontrado:",
+        pacient ? `Sim - ${pacient.name}` : "Não"
+      );
+
+      if (!pacient) {
+        res.status(404).json({
+          success: false,
+          error: "Paciente não encontrado",
+        });
+        return;
+      }
+
       const id = await AppointmentModel.create(appointmentData);
+      console.log("✅ ID do agendamento criado:", id);
+
       const newAppointment = await AppointmentModel.findById(id);
+      console.log("📋 Agendamento recuperado:", newAppointment);
+
       if (!newAppointment) {
         res.status(500).json({
           success: false,
@@ -23,13 +63,16 @@ export class AppointmentController {
         });
         return;
       }
+
       const response: ApiResponse<Appointment> = {
         success: true,
         data: newAppointment,
         message: "Consulta agendada com sucesso",
       };
+
       res.status(201).json(response);
     } catch (error) {
+      console.error("❌ Erro ao criar agendamento:", error);
       next(error);
     }
   }
@@ -123,7 +166,7 @@ export class AppointmentController {
       const appointmentData: Partial<Omit<Appointment, "id" | "created">> =
         req.body;
 
-      await AppointmentModel.update(Number(id), appointmentData);
+      await AppointmentModel.update(String(id), appointmentData);
       const updatedAppointment = await AppointmentModel.findById(String(id));
       if (!updatedAppointment) {
         res.status(500).json({
@@ -150,7 +193,7 @@ export class AppointmentController {
   ): Promise<void> {
     try {
       const { id } = req.params;
-      await AppointmentModel.delete(Number(id));
+      await AppointmentModel.delete(String(id));
 
       const response: ApiResponse<null> = {
         success: true,

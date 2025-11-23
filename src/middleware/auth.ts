@@ -30,7 +30,6 @@ export const authenticate = (
   next: NextFunction
 ): void => {
   try {
-    // Obter o token do header Authorization
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -41,7 +40,6 @@ export const authenticate = (
       return;
     }
 
-    // Extrair o token (remover "Bearer ")
     const token = authHeader.substring(7);
 
     if (!token) {
@@ -52,27 +50,26 @@ export const authenticate = (
       return;
     }
 
-    // Verificar e decodificar o token
+    // Aumentar tempo de expiração para 7 dias
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || "seu-segredo-secreto"
     ) as JwtPayload;
 
-    // Adicionar informações do usuário à requisição
     req.user = {
       id: decoded.id,
       email: decoded.email,
       type: decoded.type,
     };
 
-    next(); // Continuar para a próxima função/middleware
+    next();
   } catch (error) {
     console.error("Erro na autenticação:", error);
 
     if (error instanceof jwt.TokenExpiredError) {
       res.status(401).json({
         success: false,
-        error: "Token expirado",
+        error: "Token expirado. Faça login novamente.",
       });
       return;
     }

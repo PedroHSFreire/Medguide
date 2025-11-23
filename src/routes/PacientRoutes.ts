@@ -8,6 +8,7 @@ import {
   validateCPFParam,
   validateForgotPassword,
   validateResetPassword,
+  validatePacientAddress,
 } from "../middleware/validation.js";
 import { authenticate, requirePacient } from "../middleware/auth.js"; // ← Importar
 
@@ -39,6 +40,7 @@ router.put(
   authenticate,
   requirePacient,
   validatePacientUpdate,
+
   PacientController.updateProfile
 );
 

@@ -1,3 +1,4 @@
+// index.ts - CORRIJA O PLURAL
 import { Router } from "express";
 import PacientRoutes from "./PacientRoutes.js";
 import DoctorRoutes from "./DoctorRoutes.js";
@@ -16,5 +17,6 @@ router.get("/health", (req: Request, res: Response) => {
 
 router.use("/doctor", DoctorRoutes);
 router.use("/pacient", PacientRoutes);
-router.use("/appointment", AppointmentRoutes);
+router.use("/appointments", AppointmentRoutes);
+
 export default router;

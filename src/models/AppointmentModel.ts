@@ -42,8 +42,9 @@ export class AppointmentModel {
     return await allQuery<Appointment>(sql, [doctor_id]);
   }
 
+  // CORRIGIR: update e delete devem usar string, não number
   static async update(
-    id: number,
+    id: string, // MUDAR: era number
     appointment: Partial<Omit<Appointment, "id" | "created">>
   ): Promise<boolean> {
     const fields = Object.keys(appointment)
@@ -55,7 +56,8 @@ export class AppointmentModel {
     return true;
   }
 
-  static async delete(id: number): Promise<boolean> {
+  static async delete(id: string): Promise<boolean> {
+    // MUDAR: era number
     const sql = `DELETE FROM Appointment WHERE id = ?`;
     await runQuery(sql, [id]);
     return true;

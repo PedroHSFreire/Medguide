@@ -12,8 +12,11 @@ import {
 import { authenticate, requireDoctor } from "../middleware/auth.js"; // ← Importar
 
 const router = Router();
-
+router.get("/specialties", authenticate, DoctorController.getSpecialties);
+router.get("/search", authenticate, DoctorController.searchDoctors);
 // ROTAS PÚBLICAS
+router.get("/", authenticate, DoctorController.findAll);
+router.get("/all/with-address", DoctorController.findAllWithAddress);
 router.post("/register", validateDoctor, DoctorController.register);
 router.post("/login", validateLogin, DoctorController.login);
 router.post(
@@ -50,6 +53,7 @@ router.get(
   validateCPFParam,
   DoctorController.findByCPF
 );
+
 router.put(
   "/:id",
   authenticate,

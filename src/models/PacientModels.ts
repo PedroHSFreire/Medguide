@@ -168,23 +168,23 @@ export class PacientModel {
       );
     }
   }
+
   static async createAddress(
     address: Omit<PacientAddress, "id">
-  ): Promise<string> {
+  ): Promise<number> {
     try {
-      const id = uuidv4();
       const sql = `
-        INSERT INTO PacientAddress (cep, rua, number, bairro, fk_id)
-        VALUES (?, ?, ?, ?, ?)
-      `;
-      const result = await runQuery(sql, [
+      INSERT INTO PacientAddress (cep, rua, number, bairro, fk_id)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+      await runQuery(sql, [
         address.cep,
         address.rua,
         address.number,
         address.bairro,
         address.fk_id,
       ]);
-      return id;
+      return 1;
     } catch (error) {
       throw new Error(
         `Erro ao criar endereço do paciente: ${
@@ -214,6 +214,9 @@ export class PacientModel {
     address: Partial<Omit<PacientAddress, "id" | "fk_id">>
   ): Promise<boolean> {
     try {
+      console.log("🔄 Atualizando endereço para fk_id:", fk_id);
+      console.log("📦 Dados do endereço:", address);
+
       const fields = Object.keys(address)
         .map((key) => `${key} = ?`)
         .join(", ");
@@ -224,9 +227,15 @@ export class PacientModel {
       }
 
       const sql = `UPDATE PacientAddress SET ${fields} WHERE fk_id = ?`;
+      console.log("📝 SQL:", sql);
+      console.log("🎯 Valores:", [...values, fk_id]);
+
       await runQuery(sql, [...values, fk_id]);
+
+      console.log("✅ Endereço atualizado com sucesso");
       return true;
     } catch (error) {
+      console.error("❌ Erro ao atualizar endereço do paciente:", error);
       throw new Error(
         `Erro ao atualizar endereço do paciente: ${
           error instanceof Error ? error.message : "Erro desconhecido"
@@ -234,7 +243,6 @@ export class PacientModel {
       );
     }
   }
-
   static async deleteAddress(fk_id: string): Promise<boolean> {
     try {
       const sql = `DELETE FROM PacientAddress WHERE fk_id = ?`;

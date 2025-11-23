@@ -59,7 +59,7 @@ export class DoctorController {
           type: "doctor",
         },
         process.env.JWT_SECRET || "seu-segredo-secreto",
-        { expiresIn: "24h" }
+        { expiresIn: "7d" }
       );
 
       // Remover senha da resposta
@@ -132,6 +132,127 @@ export class DoctorController {
       res.status(201).json(response);
     } catch (error) {
       next(error);
+    }
+  }
+
+  // 🔥 NOVO: Buscar médicos com filtros
+  static async searchDoctors(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { specialty, search } = req.query;
+
+      console.log("🔍 Buscando médicos com filtros:", { specialty, search });
+
+      // Usar o método findAll existente e aplicar filtros
+      const doctors = await DoctorModel.findAll(1, 1000, search as string);
+
+      let filteredDoctors = doctors;
+
+      // Aplicar filtro de especialidade se fornecido
+      if (specialty) {
+        filteredDoctors = filteredDoctors.filter((doctor) =>
+          doctor.specialty
+            ?.toLowerCase()
+            .includes(specialty.toString().toLowerCase())
+        );
+      }
+
+      // Aplicar filtro de busca se fornecido
+      if (search) {
+        filteredDoctors = filteredDoctors.filter(
+          (doctor) =>
+            doctor.name
+              .toLowerCase()
+              .includes(search.toString().toLowerCase()) ||
+            doctor.specialty
+              ?.toLowerCase()
+              .includes(search.toString().toLowerCase()) ||
+            doctor.CRM.toLowerCase().includes(search.toString().toLowerCase())
+        );
+      }
+
+      // Remover senhas dos resultados
+      const doctorsWithoutPassword = filteredDoctors.map((doctor) => {
+        const { password, ...doctorWithoutPassword } = doctor;
+        return doctorWithoutPassword;
+      });
+
+      const response: ApiResponse<{ doctors: Omit<Doctor, "password">[] }> = {
+        success: true,
+        data: {
+          doctors: doctorsWithoutPassword,
+        },
+        message: `Encontrados ${doctorsWithoutPassword.length} médicos`,
+      };
+
+      res.json(response);
+    } catch (error: any) {
+      console.error("❌ Erro ao buscar médicos:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao buscar médicos",
+        error: error.message,
+      });
+    }
+  }
+
+  // 🔥 NOVO: Listar especialidades únicas
+  static async getSpecialties(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      console.log("📋 Buscando especialidades disponíveis");
+
+      // Buscar todos os médicos para extrair especialidades únicas
+      const doctors = await DoctorModel.findAll(1, 1000);
+
+      // Extrair especialidades únicas
+      const specialties = [
+        ...new Set(
+          doctors
+            .map((doctor) => doctor.specialty)
+            .filter((specialty) => specialty && specialty.trim() !== "")
+        ),
+      ].sort();
+
+      // Se não houver especialidades no banco, usar lista padrão
+      const defaultSpecialties = [
+        "Cardiologista",
+        "Dermatologista",
+        "Ortopedista",
+        "Pediatra",
+        "Ginecologista",
+        "Oftalmologista",
+        "Neurologista",
+        "Psiquiatra",
+        "Endocrinologista",
+        "Gastroenterologista",
+        "Urologista",
+        "Otorrinolaringologista",
+      ];
+
+      const finalSpecialties =
+        specialties.length > 0 ? specialties : defaultSpecialties;
+
+      const response: ApiResponse<string[]> = {
+        success: true,
+        data: finalSpecialties,
+        message: `Encontradas ${finalSpecialties.length} especialidades`,
+      };
+
+      res.json(response);
+    } catch (error: any) {
+      console.error("❌ Erro ao buscar especialidades:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao buscar especialidades",
+        error: error.message,
+      });
     }
   }
 
@@ -261,6 +382,39 @@ export class DoctorController {
         success: true,
         message: "Instruções para redefinição de senha enviadas para o e-mail",
       };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async findAll(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { page = 1, limit = 100, search } = req.query;
+
+      const doctors = await DoctorModel.findAll(
+        Number(page),
+        Number(limit),
+        search as string
+      );
+
+      // Remover senhas dos resultados
+      const doctorsWithoutPassword = doctors.map((doctor) => {
+        const { password, ...doctorWithoutPassword } = doctor;
+        return doctorWithoutPassword;
+      });
+
+      const response: ApiResponse<{ doctors: Omit<Doctor, "password">[] }> = {
+        success: true,
+        data: {
+          doctors: doctorsWithoutPassword,
+        },
+      };
+
       res.json(response);
     } catch (error) {
       next(error);
@@ -482,7 +636,7 @@ export class DoctorController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { id } = req.params; // Corrigido: usar params em vez de body
+      const { id } = req.params;
 
       if (!id) {
         res.status(400).json({
@@ -512,6 +666,7 @@ export class DoctorController {
       next(error);
     }
   }
+
   static async createAddress(
     req: Request,
     res: Response,
@@ -548,7 +703,7 @@ export class DoctorController {
 
       const addressId = await DoctorModel.createAddress(addressData);
 
-      const response: ApiResponse<{ id: string }> = {
+      const response: ApiResponse<{ id: Number }> = {
         success: true,
         data: { id: addressId },
         message: "Endereço do médico criado com sucesso",
@@ -587,6 +742,25 @@ export class DoctorController {
         success: true,
         data: address,
       };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async findAllWithAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const doctors = await DoctorModel.findAllWithAddress();
+
+      const response: ApiResponse<(Doctor & { address?: DoctorAddress })[]> = {
+        success: true,
+        data: doctors,
+      };
+
       res.json(response);
     } catch (error) {
       next(error);

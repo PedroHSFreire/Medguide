@@ -18,7 +18,6 @@ export const handleValidationErrors = (
   next();
 };
 
-//  NOVAS VALIDAÇÕES PARA AUTENTICAÇÃO
 export const validateLogin = [
   body("login")
     .notEmpty()
@@ -60,8 +59,14 @@ export const validatePacientUpdate = [
   body("name").optional().isLength({ min: 1, max: 255 }),
   body("email").optional().isEmail(),
   body("password").optional().isLength({ min: 6 }),
-  body("cpf").optional(),
+  body("cpf").optional().isLength({ min: 11, max: 11 }),
   handleValidationErrors,
+];
+export const validatePacientAddress = [
+  body("cep").optional().isLength({ min: 8, max: 8 }),
+  body("rua").optional(),
+  body("number").optional(),
+  body("bairro").optional(),
 ];
 
 export const validateDoctorUpdate = [
@@ -85,7 +90,8 @@ export const validatePacient = [
 export const validateDoctor = [
   body("name").notEmpty().isLength({ min: 1, max: 255 }),
   body("email").isEmail(),
-  body("CRM").isInt(),
+  body("CRM").isInt().isLength({ min: 6, max: 6 }),
+
   body("specialty").notEmpty(),
   body("password").isLength({ min: 6 }),
   body("cpf").notEmpty(),
