@@ -575,7 +575,7 @@ export class PacientController {
 
       const addressId = await PacientModel.createAddress(addressData);
 
-      const response: ApiResponse<{ id: string }> = {
+      const response: ApiResponse<{ id: number }> = {
         success: true,
         data: { id: addressId },
         message: "Endereço do paciente criado com sucesso",
